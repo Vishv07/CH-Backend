@@ -1,7 +1,7 @@
 const app = require("express")();
 const server = require("http").createServer(app);
 const cors = require("cors");
-const Rooms = require("./Utils/Rooms");
+const Rooms = require("./Room/Rooms");
 const io = require("socket.io")(server, { origins: "*:*" });
 const helmet = require("helmet");
 const rateLimiter = require("./rateLimiter");
@@ -53,9 +53,15 @@ io.on("connection", (socket) => {
     // inform everyone (excluding the typing user himself) who is typing
     socket.broadcast.to(roomId).emit("typing", user);
   });
+
   socket.on("chatmessage", (data) => {
     // send the chat message to all the users
     socket.to(roomId).emit("chatmessage", data);
+  });
+
+  socket.on("canvas-data", (data) => {
+    // Send the whitboard changes to all the sockets
+    socket.broadcast.to(roomId).emit("canvas-data", data);
   });
 
   socket.on("disconnect", function () {
